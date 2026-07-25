@@ -1,0 +1,301 @@
+/* ==========================================================================
+   Base Design: Solid Monochrome for iPhone (レスポンシブ & 大文字最適化)
+   ========================================================================== */
+
+body {
+    background-color: #f4f4f5;
+    color: #18181b;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 16px; /* スマホ用に外周の余白をタイトに */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* スマホで上部が詰まらないように */
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+/* 全ての要素でボックスサイズを直感的に計算 */
+*, *:before, *:after {
+    box-sizing: border-box;
+}
+
+/* メインコンテナ：横幅いっぱいに広がりつつ最大値を制限 */
+.container {
+    background: #ffffff;
+    border: 2px solid #18181b;
+    border-radius: 12px; /* 少し角丸を滑らかに */
+    padding: 24px 20px;  /* スマホの画面幅を活かすため内側余白を調整 */
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 6px 0px rgba(24, 24, 27, 0.05);
+    margin-top: 8px;
+}
+
+/* セレクトボックスのラベル */
+label {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #71717a;
+    margin-bottom: 8px;
+    margin-top: 16px;
+}
+label:first-of-type {
+    margin-top: 0;
+}
+
+/* プルダウン：タップしやすい高さに */
+select {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px; /* iPhoneでフォーカス時に画面がズームされるのを防ぐ16px以上 */
+    background-color: #ffffff;
+    border: 2px solid #e4e4e7;
+    border-radius: 8px;
+    color: #18181b;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    -webkit-appearance: none; /* iOS固有のデフォルトスタイルをリセット */
+    appearance: none;
+}
+select:focus {
+    border-color: #18181b;
+}
+
+/* 問題文・ヒント：文字サイズを大幅アップ */
+.question-box {
+    font-size: 26px; /* 大胆に拡大 */
+    font-weight: 800;
+    margin-top: 24px;
+    color: #18181b;
+    line-height: 1.3;
+}
+
+.hint-box {
+    font-size: 16px; /* 14pxから16pxへ拡大 */
+    color: #52525b;
+    margin-top: 8px;
+    margin-bottom: 28px;
+    font-weight: 500;
+}
+
+/* エリア見出し */
+.area-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #a1a1aa;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+/* チップを並べるエリア：スマホでの誤タップを防ぐため少し広めに */
+.chip-area {
+    background-color: #fafafa;
+    border: 2px dashed #e4e4e7;
+    border-radius: 8px;
+    min-height: 96px; /* チップが2段になっても余裕がある高さ */
+    padding: 14px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-content: flex-start;
+}
+
+/* 単語チップ：指の腹で確実に叩けるサイズと、はっきり読める大文字 */
+.chip {
+    background-color: #ffffff;
+    border: 2px solid #18181b;
+    border-radius: 8px;
+    padding: 12px 20px; /* タップ領域を縦横に拡大 */
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none; /* iOSでの長押し選択を防止 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px; /* 押しやすい最小幅 */
+    box-shadow: 0 3px 0 #18181b; /* 立体感を少し強調 */
+    position: relative;
+    top: 0;
+}
+
+/* チップ内のメイン文字（タイ語・日本語など） */
+.chip div:first-child {
+    font-size: 22px; /* 17pxから22pxへ超拡大。タイ語の複雑な子音・母音もクッキリ */
+    font-weight: 700;
+    color: #18181b;
+    line-height: 1.2;
+}
+
+/* 発音記号・ルビ */
+.chip .phonetic {
+    font-size: 11px;
+    color: #71717a;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+/* タップした瞬間（PCのホバー兼用） */
+.chip:active {
+    top: 3px;
+    box-shadow: 0 0px 0 #18181b;
+    background-color: #f4f4f5;
+}
+
+/* 使用済みチップ：存在感を完全に消して誤タップを防ぐ */
+.chip.used {
+    background-color: #f4f4f5;
+    border-color: #e4e4e7;
+    box-shadow: none;
+    top: 3px;
+    opacity: 0.2; /* より薄くして「壁」の一部にする */
+    cursor: default;
+    pointer-events: none;
+}
+.chip.used div:first-child, .chip.used .phonetic {
+    color: #a1a1aa;
+}
+
+/* フィードバック */
+.feedback {
+    min-height: 24px;
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.feedback.correct {
+    color: #18181b;
+    border-left: 4px solid #18181b;
+    padding-left: 10px;
+}
+.feedback.incorrect {
+    color: #a1a1aa;
+    text-decoration: line-through;
+    padding-left: 10px;
+}
+
+/* アクションボタン：押しやすさ最優先 */
+.actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+button {
+    padding: 16px 24px; /* 上下を厚くして親指で押しやすく */
+    font-size: 15px;    /* 文字も少し大きく */
+    font-weight: 800;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    -webkit-tap-highlight-color: transparent; /* タップ時の青いハイライトを消す */
+}
+
+button.reset {
+    background-color: transparent;
+    border: 2px solid #18181b;
+    color: #18181b;
+}
+
+button.check, button.next {
+    background-color: #18181b;
+    border: 2px solid #18181b;
+    color: #ffffff;
+    flex-grow: 1;
+    box-shadow: 0 4px 0 #52525b;
+    position: relative;
+    top: 0;
+}
+button.check:active, button.next:active {
+    top: 4px;
+    box-shadow: none;
+}
+
+/* ==========================================================================
+   Added Features: Counter & Result Styles (硬質モノトーン調)
+   ========================================================================== */
+
+/* カウンター表示 */
+.progress-counter {
+    font-size: 13px;
+    font-weight: 800;
+    color: #18181b;
+    background-color: #f4f4f5;
+    padding: 4px 10px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 12px;
+    border: 1px solid #18181b;
+}
+
+/* リザルト画面全体のレイアウト */
+.result-title {
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #71717a;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.result-score {
+    font-size: 48px;
+    font-weight: 900;
+    color: #18181b;
+    text-align: center;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+}
+
+.result-comment {
+    font-size: 15px;
+    font-weight: 600;
+    color: #52525b;
+    text-align: center;
+    line-height: 1.4;
+    margin-bottom: 32px;
+}
+
+/* 復習用の各問題ブロック */
+.review-item {
+    border-bottom: 1px solid #e4e4e7;
+    padding: 16px 0;
+}
+.review-item:last-child {
+    border-bottom: none;
+}
+
+.review-instruction {
+    font-size: 15px;
+    font-weight: 700;
+    color: #18181b;
+}
+
+.review-hint {
+    font-size: 13px;
+    color: #71717a;
+    margin-top: 2px;
+}
+
+.review-answer {
+    font-size: 16px;
+    font-weight: 700;
+    color: #18181b;
+    margin-top: 6px;
+    background-color: #fafafa;
+    padding: 8px 12px;
+    border-left: 3px solid #18181b;
+    display: inline-block;
+}

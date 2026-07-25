@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Training Platform</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="container">
+    <!-- ==========================================
+         1. スタート画面 (Start Screen)
+         ========================================== -->
+    <div id="start-screen">
+        <label for="language-select">Target Language:</label>
+        <select id="language-select" onchange="changeLanguage()"></select>
+        
+        <label for="category-select">Topic:</label>
+        <select id="category-select" onchange="changeCategory()"></select>
+
+        <button class="check" style="width: 100%; margin-top: 32px;" onclick="startTraining()">Start Training</button>
+    </div>
+
+    <!-- ==========================================
+         2. トレーニング画面 (Quiz Screen)
+         ========================================== -->
+    <div id="quiz-screen" style="display: none;">
+        <!-- 進捗カウンター (例: 3 / 10) -->
+        <div class="progress-counter" id="progress-counter">0 / 10</div>
+
+        <div class="question-box" id="q-text">Instruction will appear here.</div>
+        <div class="hint-box" id="h-text">Hint will appear here.</div>
+
+        <div class="area-title">【Your Answer】(Tap to remove)</div>
+        <div class="chip-area" id="answer-area"></div>
+
+        <div class="area-title">【Options】(Tap to select)</div>
+        <div class="chip-area" id="word-area"></div>
+
+        <div id="feedback-msg" class="feedback"></div>
+
+        <div class="actions">
+            <button class="reset" onclick="resetAnswer()">Clear</button>
+            <button class="check" id="btn-check" onclick="checkAnswer()">Check</button>
+            <button class="next" id="btn-next" onclick="nextQuestion()">Next</button>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         3. リザルト・結果画面 (Result Screen)
+         ========================================== -->
+    <div id="result-screen" style="display: none;">
+        <div class="result-title">Training Complete</div>
+        
+        <!-- スコア表示 -->
+        <div class="result-score" id="result-score">0 / 10</div>
+        <!-- 評価メッセージ -->
+        <div class="result-comment" id="result-comment"></div>
+
+        <!-- 復習用ミスクリップボード -->
+        <div id="review-section" style="display: none;">
+            <div class="area-title" style="margin-top: 24px; color: #18181b;">Review Incorrect Answers:</div>
+            <div id="incorrect-list"></div>
+        </div>
+
+        <button class="check" style="width: 100%; margin-top: 32px;" onclick="backToStart()">Back to Menu</button>
+    </div>
+</div>
+
+<!-- データの読み込み -->
+<script src="data/th/basic_svo_th.js"></script>
+<script src="data/ja/basic_sov_ja.js"></script>
+<script src="data/ja/question_sov_ja.js"></script>
+<script src="data/ja/negative_sov_ja.js"></script>
+<script src="data/ja/interrogative_sov_ja.js"></script>
+<script src="data/ja/tense_sov_ja.js"></script>
+<script src="data/ja/AuxiliaryVerb_can_ja.js"></script>
+<script src="data/ja/AuxiliaryVerb_Must_ja.js"></script>
+<script src="data/ja/AuxiliaryVerb_MustNot_MayNot_ja.js"></script>
+<script src="data/ja/Conjecture_ja.js"></script>
+<script src="data/th/basic_question_th.js"></script>
+<!-- メインロジック -->
+<script src="js/app.js"></script>
+</body>
+</html>
