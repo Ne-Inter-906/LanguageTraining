@@ -27,6 +27,7 @@ let incorrectQuestions = [];    // 間違えた問題をストックする配列
 const startScreen = document.getElementById('start-screen');
 const quizScreen = document.getElementById('quiz-screen');
 const resultScreen = document.getElementById('result-screen');
+const appHeader = document.querySelector('.app-header'); // ヘッダー要素の追加キャッシュ
 
 const btnAudio = document.getElementById('btn-audio');
 
@@ -103,7 +104,8 @@ function startTraining() {
     incorrectQuestions = [];
     questionIndex = 0;
     
-    // 画面の切り替え
+    // 画面の切り替え（トレーニング中はタイトルヘッダーを非表示）
+    if (appHeader) appHeader.style.display = 'none';
     startScreen.style.display = 'none';
     resultScreen.style.display = 'none';
     quizScreen.style.display = 'block';
@@ -254,6 +256,9 @@ function nextQuestion() {
 function showResult() {
     quizScreen.style.display = 'none';
     resultScreen.style.display = 'block';
+    
+    // リザルト画面でタイトルを再度見せたい場合は 'block' に設定
+    if (appHeader) appHeader.style.display = 'block';
 
     // スコア表示
     resultScore.textContent = `${correctCount} / ${questions.length}`;
@@ -298,6 +303,10 @@ function showResult() {
 function backToStart() {
     resultScreen.style.display = 'none';
     startScreen.style.display = 'block';
+    
+    // スタート画面に戻ったらタイトルを表示
+    if (appHeader) appHeader.style.display = 'block';
+
     changeCategory(); // 次のターンのためにシャッフルした10問を裏で再用意
 }
 
@@ -376,10 +385,11 @@ function confirmQuit() {
       currentAudio = null;
     }
 
-    // 画面切り替え（スタート画面へ戻る）
+    // 画面切り替え（スタート画面へ戻り、タイトルを表示）
     quizScreen.style.display = 'none';
     resultScreen.style.display = 'none';
     startScreen.style.display = 'block';
+    if (appHeader) appHeader.style.display = 'block';
 
     // 次回のプレイに向けて問題を再シャッフル準備
     changeCategory();
