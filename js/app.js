@@ -196,6 +196,9 @@ function resetAnswer() {
 }
 
 function playCurrentAudio() {
+    // イベントの伝播やデフォルト動作をストップ（誤動作防止）
+    if (event) event.stopPropagation();
+
     if (!questions || questions.length === 0) return;
     const question = questions[questionIndex];
     const correctAnswer = question.answer.map(a => a.t).join('');
@@ -211,26 +214,23 @@ function checkAnswer() {
     const correctAnswer = question.answer.map(a => a.t).join('');
 
     if (userAnswer === correctAnswer) {
-        feedbackMsg.textContent = "Correct! 🎉";
+        // メッセージをより明確に表示
+        feedbackMsg.textContent = "✔ CORRECT ! 🎉";
         feedbackMsg.className = "feedback correct";
+        
         btnCheck.style.display = 'none';
         btnNext.style.display = 'block';
+        if (btnAudio) btnAudio.style.display = 'inline-block';
 
-        // 初回で正解判定なら正解数をカウント
         if (isFirstAttempt) {
             correctCount++;
         }
-
-        //speakText(correctAnswer, currentLanguage);
-        btnAudio.style.display = 'inline-block';
-
     } else {
-        feedbackMsg.textContent = "Incorrect. Try again!";
+        // メッセージをより明確に表示
+        feedbackMsg.textContent = "✖ INCORRECT - TRY AGAIN";
         feedbackMsg.className = "feedback incorrect";
         
-        // 初回ミス時に、この問題をミスリストに保存し、フラグを折る
         if (isFirstAttempt) {
-            // すでに登録されていない場合のみ追加
             if (!incorrectQuestions.includes(question)) {
                 incorrectQuestions.push(question);
             }
