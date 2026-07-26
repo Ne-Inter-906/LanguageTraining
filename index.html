@@ -9,21 +9,45 @@
 <body>
 
 <div class="container">
+    <!-- アプリ共通ヘッダー -->
     <header class="app-header">
         <h1 id="page_title">Language Training</h1>
         <div class="subtitle">Syntax & Structure</div>
     </header>
+
     <!-- ==========================================
          1. スタート画面 (Start Screen)
          ========================================== -->
     <div id="start-screen">
-        <label for="language-select">Target Language:</label>
-        <select id="language-select" onchange="changeLanguage()"></select>
-        
-        <label for="category-select">Topic:</label>
-        <select id="category-select" onchange="changeCategory()"></select>
+        <!-- 言語・カテゴリ選択 -->
+        <div class="select-group">
+            <label for="language-select">LANGUAGE</label>
+            <select id="language-select" onchange="changeLanguage()"></select>
+        </div>
 
-        <button class="check" style="width: 100%; margin-top: 32px;" onclick="startTraining()">Start Training</button>
+        <div class="select-group">
+            <label for="category-select">CATEGORY</label>
+            <select id="category-select" onchange="changeCategory()"></select>
+        </div>
+
+        <!-- 問題数選択（アコーディオン） -->
+        <div class="select-group">
+            <label>NUMBER OF QUESTIONS</label>
+            <div class="custom-accordion" id="count-accordion">
+                <button type="button" class="accordion-trigger" onclick="toggleCountAccordion(event)">
+                    <span id="selected-count-label">10 Questions</span>
+                    <span class="arrow">▼</span>
+                </button>
+                <div class="accordion-content" id="count-options">
+                    <div class="count-option active" data-value="10" onclick="selectQuestionCount('10', '10 Questions')">10 Questions</div>
+                    <div class="count-option" data-value="5" onclick="selectQuestionCount('5', '5 Questions')">5 Questions</div>
+                    <div class="count-option" data-value="3" onclick="selectQuestionCount('3', '3 Questions')">3 Questions</div>
+                    <div class="count-option" data-value="all" onclick="selectQuestionCount('all', 'All Questions')">All Questions</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="startTraining()">START TRAINING</button>
     </div>
 
     <!-- ==========================================
@@ -50,7 +74,7 @@
         <div class="actions">
             <button class="reset" onclick="resetAnswer()">Clear</button>
             <button class="check" id="btn-check" onclick="checkAnswer()">Check</button>
-            <button id="btn-audio" class="audio" onclick="playCurrentAudio()" style="display: none;">🔊 LISTEN</button>
+            <button id="btn-audio" class="audio" onclick="playCurrentAudio(event)" style="display: none;">🔊 LISTEN</button>
             <button class="next" id="btn-next" onclick="nextQuestion()">Next</button>
         </div>
     </div>
@@ -88,6 +112,7 @@
 <script src="data/ja/AuxiliaryVerb_MustNot_MayNot_ja.js"></script>
 <script src="data/ja/May_Might_ja.js"></script>
 <script src="data/th/basic_question_th.js"></script>
+
 <!-- メインロジック -->
 <script src="js/app.js"></script>
 </body>

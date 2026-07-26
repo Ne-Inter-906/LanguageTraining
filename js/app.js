@@ -2,7 +2,6 @@
 const LANGUAGES_CONFIG = {
     "ja": {
         name: "Japanese (日本語)",
-        // 自動的に蓄積された配列を読み込む
         categories: window.japaneseCategories || []
     },
     "th": {
@@ -17,17 +16,19 @@ let questions = [];
 let questionIndex = 0;
 let selectedWords = [];
 let shuffledWords = [];
+let selectedQuestionCount = "10"; // 初期値: 10問
 
-// 【新設】スコアと復習データの追跡用
+// スコアと復習データの追跡用
 let correctCount = 0;           // 一発正解した数
 let isFirstAttempt = true;      // その問題でまだミスしてないか判定用フラグ
 let incorrectQuestions = [];    // 間違えた問題をストックする配列
+let currentAudio = null;        // 再生中オーディオ保持用
 
 // DOM要素のキャッシュ
 const startScreen = document.getElementById('start-screen');
 const quizScreen = document.getElementById('quiz-screen');
 const resultScreen = document.getElementById('result-screen');
-const appHeader = document.querySelector('.app-header'); // ヘッダー要素の追加キャッシュ
+const appHeader = document.querySelector('.app-header');
 
 const btnAudio = document.getElementById('btn-audio');
 
@@ -41,7 +42,7 @@ const btnCheck = document.getElementById('btn-check');
 const btnNext = document.getElementById('btn-next');
 const feedbackMsg = document.getElementById('feedback-msg');
 
-// 【新設】リザルト・カウンター関係のDOM
+// リザルト・カウンター関係のDOM
 const progressCounter = document.getElementById('progress-counter');
 const resultScore = document.getElementById('result-score');
 const resultComment = document.getElementById('result-comment');
@@ -58,6 +59,14 @@ window.onload = () => {
     });
     
     changeLanguage();
+
+    // アコーディオン外タップ時に閉じるイベントリスナーを追加
+    document.addEventListener('click', (e) => {
+        const accordion = document.getElementById('count-accordion');
+        if (accordion && !accordion.contains(e.target)) {
+            accordion.classList.remove('open');
+        }
+    });
 };
 
 // 言語変更時
@@ -81,21 +90,26 @@ function changeCategory() {
     questionIndex = 0;
 
     if (LANGUAGES_CONFIG[currentLanguage] && LANGUAGES_CONFIG[currentLanguage].categories[categoryIndex]) {
-        // 元のデータを破壊しないように、シャッフル用のシャローコピー（配列の複製）を作成
+        // 元データを破壊しないように複製
         const rawQuestions = [...LANGUAGES_CONFIG[currentLanguage].categories[categoryIndex].data];
         
-        // 読み込んだ問題の配列を完全にランダムにシャッフル (Fisher-Yates)
+        // ランダムシャッフル (Fisher-Yates)
         for (let i = rawQuestions.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [rawQuestions[i], rawQuestions[j]] = [rawQuestions[j], rawQuestions[i]];
         }
 
-        // シャッフルされた中から、先頭の10問だけを切り出す
-        questions = rawQuestions.slice(0, 10);
+        // 選択された問題数に応じて切り出し (Allの場合は全問)
+        if (selectedQuestionCount === 'all') {
+            questions = rawQuestions;
+        } else {
+            const count = parseInt(selectedQuestionCount, 10);
+            questions = rawQuestions.slice(0, count);
+        }
     }
 }
 
-// 【新設】トレーニング開始ボタンを押した時
+// トレーニング開始ボタンを押した時
 function startTraining() {
     if (!questions || questions.length === 0) return;
     
@@ -104,7 +118,7 @@ function startTraining() {
     incorrectQuestions = [];
     questionIndex = 0;
     
-    // 画面の切り替え（トレーニング中はタイトルヘッダーを非表示）
+    // 画面の切り替え
     if (appHeader) appHeader.style.display = 'none';
     startScreen.style.display = 'none';
     resultScreen.style.display = 'none';
@@ -121,7 +135,7 @@ function initQuestion() {
     qText.textContent = question.instruction; 
     hText.textContent = question.hint;        
     selectedWords = [];
-    isFirstAttempt = true; // この問題への最初の挑戦フラグを立てる
+    isFirstAttempt = true; // 挑戦フラグをセット
     
     // 現在の進捗を表示 (例: 1 / 10)
     progressCounter.textContent = `${questionIndex + 1} / ${questions.length}`;
@@ -130,6 +144,7 @@ function initQuestion() {
     
     btnCheck.style.display = 'block';
     btnNext.style.display = 'none';
+    if (btnAudio) btnAudio.style.display = 'none';
     feedbackMsg.textContent = '';
     feedbackMsg.className = 'feedback';
 
@@ -197,9 +212,8 @@ function resetAnswer() {
     render();
 }
 
-function playCurrentAudio() {
-    // イベントの伝播やデフォルト動作をストップ（誤動作防止）
-    if (event) event.stopPropagation();
+function playCurrentAudio(e) {
+    if (e) e.stopPropagation();
 
     if (!questions || questions.length === 0) return;
     const question = questions[questionIndex];
@@ -216,10 +230,12 @@ function checkAnswer() {
     const correctAnswer = question.answer.map(a => a.t).join('');
 
     if (userAnswer === correctAnswer) {
-        // メッセージをより明確に表示
         feedbackMsg.textContent = "✔ CORRECT ! 🎉";
         feedbackMsg.className = "feedback correct";
         
+        // 正解時は answerArea をコピペ可能なテキストに置き換え
+        answerArea.innerHTML = `<div class="final-answer-text">${correctAnswer}</div>`;
+
         btnCheck.style.display = 'none';
         btnNext.style.display = 'block';
         if (btnAudio) btnAudio.style.display = 'inline-block';
@@ -228,7 +244,6 @@ function checkAnswer() {
             correctCount++;
         }
     } else {
-        // メッセージをより明確に表示
         feedbackMsg.textContent = "✖ INCORRECT - TRY AGAIN";
         feedbackMsg.className = "feedback incorrect";
         
@@ -243,27 +258,23 @@ function checkAnswer() {
 
 function nextQuestion() {
     questionIndex++;
-    btnAudio.style.display = 'none';
+    if (btnAudio) btnAudio.style.display = 'none';
     if (questionIndex >= questions.length) {
-        // 10問終了したらリザルト画面を表示
         showResult();
         return;
     }
     initQuestion();
 }
 
-// 【新設】結果画面の生成と表示
+// 結果画面の表示
 function showResult() {
     quizScreen.style.display = 'none';
     resultScreen.style.display = 'block';
     
-    // リザルト画面でタイトルを再度見せたい場合は 'block' に設定
     if (appHeader) appHeader.style.display = 'block';
 
-    // スコア表示
     resultScore.textContent = `${correctCount} / ${questions.length}`;
 
-    // スコアに応じたメッセージ生成
     let comment = "";
     if (correctCount === questions.length) {
         comment = "Perfect! Your syntax memory is flawless. ⚡";
@@ -284,7 +295,6 @@ function showResult() {
             const item = document.createElement('div');
             item.className = 'review-item';
             
-            // 正解の文字列を構築
             const fullAnswer = q.answer.map(a => a.t).join('');
             
             item.innerHTML = `
@@ -299,30 +309,24 @@ function showResult() {
     }
 }
 
-// 【新設】メニューに戻る際、カテゴリを再読み込みして問題を再シャッフルさせる
 function backToStart() {
     resultScreen.style.display = 'none';
     startScreen.style.display = 'block';
     
-    // スタート画面に戻ったらタイトルを表示
     if (appHeader) appHeader.style.display = 'block';
 
-    changeCategory(); // 次のターンのためにシャッフルした10問を裏で再用意
+    changeCategory();
 }
-
-// 現在再生中の Audio インスタンス保持用（重なり防止）
-let currentAudio = null;
 
 function speakText(text, langCode) {
     if (!text) return;
 
-    // 言語コードのマッピング
     let shortLang = 'en';
     let fullLang = 'en-US';
     if (langCode === 'th') { shortLang = 'th'; fullLang = 'th-TH'; }
     if (langCode === 'ja') { shortLang = 'ja'; fullLang = 'ja-JP'; }
 
-    // 1. 既存の再生を停止（Web Speech API & Google TTS 両方）
+    // 既存再生の停止
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
     }
@@ -331,7 +335,6 @@ function speakText(text, langCode) {
         currentAudio = null;
     }
 
-    // 2. Web Speech API へのフォールバック処理を関数化
     const fallbackToWebSpeech = () => {
         if (!('speechSynthesis' in window)) return;
 
@@ -339,7 +342,6 @@ function speakText(text, langCode) {
         utterance.lang = fullLang;
         utterance.rate = 0.85;
 
-        // 利用可能な音声があればセット
         const voices = window.speechSynthesis.getVoices();
         const matchingVoice = voices.find(v => v.lang === fullLang || v.lang.startsWith(shortLang));
         if (matchingVoice) {
@@ -349,49 +351,67 @@ function speakText(text, langCode) {
         window.speechSynthesis.speak(utterance);
     };
 
-    // 3. オフライン判定：ネット未接続なら即座に Web Speech API を実行
     if (!navigator.onLine) {
         fallbackToWebSpeech();
         return;
     }
 
-    // 4. Google TTS で再生を試みる
     const encodedText = encodeURIComponent(text);
     const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${shortLang}&client=tw-ob`;
 
     currentAudio = new Audio(ttsUrl);
     currentAudio.playbackRate = 0.9;
 
-    // ネットワークエラーやブロック等で再生失敗した場合にフォールバック発動
     currentAudio.play().catch(e => {
         console.warn("Google TTS failed, falling back to Web Speech API:", e);
         fallbackToWebSpeech();
     });
 }
 
-// トレーニングを途中で終了してスタート画面に戻る
 function confirmQuit() {
-  const message = 
-    "Quit training and return to menu?\n" +
-    "（メニューに戻りますか？現在の進捗はリセットされます）\n" +
-    "（ยกเลิกการฝึกและกลับสู่เมนู?）";
+    const message = 
+        "Quit training and return to menu?\n" +
+        "（メニューに戻りますか？現在の進捗はリセットされます）\n" +
+        "（ยกเลิกการฝึกและกลับสู่เมนู?）";
 
-  // iPhone / Android / PC 全ての標準ブラウザで共通動作
-  if (confirm(message)) {
-    // 再生中の音声を停止
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio = null;
+    if (confirm(message)) {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+        }
+
+        quizScreen.style.display = 'none';
+        resultScreen.style.display = 'none';
+        startScreen.style.display = 'block';
+        if (appHeader) appHeader.style.display = 'block';
+
+        changeCategory();
     }
+}
 
-    // 画面切り替え（スタート画面へ戻り、タイトルを表示）
-    quizScreen.style.display = 'none';
-    resultScreen.style.display = 'none';
-    startScreen.style.display = 'block';
-    if (appHeader) appHeader.style.display = 'block';
+// アコーディオンの開閉トグル
+function toggleCountAccordion(e) {
+    if (e) e.stopPropagation();
+    const accordion = document.getElementById('count-accordion');
+    accordion.classList.toggle('open');
+}
 
-    // 次回のプレイに向けて問題を再シャッフル準備
+// 問題数を選択した時
+function selectQuestionCount(val, labelText) {
+    selectedQuestionCount = val;
+    document.getElementById('selected-count-label').textContent = labelText;
+
+    const options = document.querySelectorAll('.count-option');
+    options.forEach(opt => {
+        if (opt.getAttribute('data-value') === val) {
+            opt.classList.add('active');
+        } else {
+            opt.classList.remove('active');
+        }
+    });
+
+    document.getElementById('count-accordion').classList.remove('open');
+
     changeCategory();
-  }
 }
