@@ -28,6 +28,8 @@ const startScreen = document.getElementById('start-screen');
 const quizScreen = document.getElementById('quiz-screen');
 const resultScreen = document.getElementById('result-screen');
 
+const btnAudio = document.getElementById('btn-audio');
+
 const languageSelect = document.getElementById('language-select');
 const categorySelect = document.getElementById('category-select');
 const qText = document.getElementById('q-text');
@@ -193,6 +195,14 @@ function resetAnswer() {
     render();
 }
 
+function playCurrentAudio() {
+    if (!questions || questions.length === 0) return;
+    const question = questions[questionIndex];
+    const correctAnswer = question.answer.map(a => a.t).join('');
+    
+    speakText(correctAnswer, currentLanguage);
+}
+
 function checkAnswer() {
     if (!questions || questions.length === 0) return;
     
@@ -211,7 +221,9 @@ function checkAnswer() {
             correctCount++;
         }
 
-        speakText(correctAnswer, currentLanguage);
+        //speakText(correctAnswer, currentLanguage);
+        btnAudio.style.display = 'inline-block';
+
     } else {
         feedbackMsg.textContent = "Incorrect. Try again!";
         feedbackMsg.className = "feedback incorrect";
@@ -229,6 +241,7 @@ function checkAnswer() {
 
 function nextQuestion() {
     questionIndex++;
+    btnAudio.style.display = 'none';
     if (questionIndex >= questions.length) {
         // 10問終了したらリザルト画面を表示
         showResult();
@@ -345,4 +358,30 @@ function speakText(text, langCode) {
         console.warn("Google TTS failed, falling back to Web Speech API:", e);
         fallbackToWebSpeech();
     });
+}
+
+// トレーニングを途中で終了してスタート画面に戻る
+function confirmQuit() {
+  const message = 
+    "Quit training and return to menu?\n" +
+    "（メニューに戻りますか？現在の進捗はリセットされます）\n" +
+    "（ยกเลิกการฝึกและกลับสู่เมนู?）";
+
+  // iPhone / Android / PC 全ての標準ブラウザで共通動作
+  if (confirm(message)) {
+    // 再生中の音声を停止
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+    }
+
+    // 画面切り替え（スタート画面へ戻る）
+    quizScreen.style.display = 'none';
+    resultScreen.style.display = 'none';
+    startScreen.style.display = 'block';
+
+    // 次回のプレイに向けて問題を再シャッフル準備
+    changeCategory();
+  }
 }

@@ -299,3 +299,25 @@ button.check:active, button.next:active {
     border-left: 3px solid #18181b;
     display: inline-block;
 }
+
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+#btn-quit {
+  background: none;
+  border: 1px solid #111;
+  color: #111;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#btn-quit:active {
+  background: #111;
+  color: #fff;
+}

@@ -27,7 +27,10 @@
          ========================================== -->
     <div id="quiz-screen" style="display: none;">
         <!-- 進捗カウンター (例: 3 / 10) -->
-        <div class="progress-counter" id="progress-counter">0 / 10</div>
+        <div class="quiz-header">
+            <button id="btn-quit" onclick="confirmQuit()">✕ QUIT</button>
+            <div class="progress-counter" id="progress-counter">0 / 10</div>
+        </div>
 
         <div class="question-box" id="q-text">Instruction will appear here.</div>
         <div class="hint-box" id="h-text">Hint will appear here.</div>
@@ -43,6 +46,7 @@
         <div class="actions">
             <button class="reset" onclick="resetAnswer()">Clear</button>
             <button class="check" id="btn-check" onclick="checkAnswer()">Check</button>
+            <button id="btn-audio" class="audio" onclick="playCurrentAudio()" style="display: none;">🔊 LISTEN</button>
             <button class="next" id="btn-next" onclick="nextQuestion()">Next</button>
         </div>
     </div>
