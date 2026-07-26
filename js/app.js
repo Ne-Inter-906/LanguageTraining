@@ -1,3 +1,5 @@
+//updated 20260726
+
 // 1. 各ファイルのデータを直接オブジェクトにマッピング
 const LANGUAGES_CONFIG = {
     "ja": {
@@ -318,6 +320,56 @@ function backToStart() {
     changeCategory();
 }
 
+// function speakText(text, langCode) {
+//     if (!text) return;
+
+//     let shortLang = 'en';
+//     let fullLang = 'en-US';
+//     if (langCode === 'th') { shortLang = 'th'; fullLang = 'th-TH'; }
+//     if (langCode === 'ja') { shortLang = 'ja'; fullLang = 'ja-JP'; }
+
+//     // 既存再生の停止
+//     if ('speechSynthesis' in window) {
+//         window.speechSynthesis.cancel();
+//     }
+//     if (currentAudio) {
+//         currentAudio.pause();
+//         currentAudio = null;
+//     }
+
+//     const fallbackToWebSpeech = () => {
+//         if (!('speechSynthesis' in window)) return;
+
+//         const utterance = new SpeechSynthesisUtterance(text);
+//         utterance.lang = fullLang;
+//         utterance.rate = 0.85;
+
+//         const voices = window.speechSynthesis.getVoices();
+//         const matchingVoice = voices.find(v => v.lang === fullLang || v.lang.startsWith(shortLang));
+//         if (matchingVoice) {
+//             utterance.voice = matchingVoice;
+//         }
+
+//         window.speechSynthesis.speak(utterance);
+//     };
+
+//     if (!navigator.onLine) {
+//         fallbackToWebSpeech();
+//         return;
+//     }
+
+//     const encodedText = encodeURIComponent(text);
+//     const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${shortLang}&client=tw-ob`;
+
+//     currentAudio = new Audio(ttsUrl);
+//     currentAudio.playbackRate = 0.9;
+
+//     currentAudio.play().catch(e => {
+//         console.warn("Google TTS failed, falling back to Web Speech API:", e);
+//         fallbackToWebSpeech();
+//     });
+// }
+
 function speakText(text, langCode) {
     if (!text) return;
 
@@ -338,17 +390,34 @@ function speakText(text, langCode) {
     const fallbackToWebSpeech = () => {
         if (!('speechSynthesis' in window)) return;
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = fullLang;
-        utterance.rate = 0.85;
+        const speak = () => {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = fullLang;
+            utterance.rate = 0.85;
 
-        const voices = window.speechSynthesis.getVoices();
-        const matchingVoice = voices.find(v => v.lang === fullLang || v.lang.startsWith(shortLang));
-        if (matchingVoice) {
-            utterance.voice = matchingVoice;
+            const voices = window.speechSynthesis.getVoices();
+            // 完全一致、または前方一致（'th-TH' や 'th_TH' など）で探す
+            const matchingVoice = voices.find(v => 
+                v.lang === fullLang || 
+                v.lang.replace('_', '-').startsWith(shortLang)
+            );
+
+            if (matchingVoice) {
+                utterance.voice = matchingVoice;
+            }
+
+            window.speechSynthesis.speak(utterance);
+        };
+
+        // voicesがまだ読み込まれていない場合はロードを待ってから実行
+        if (window.speechSynthesis.getVoices().length === 0) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                speak();
+                window.speechSynthesis.onvoiceschanged = null; // 1回だけ実行
+            };
+        } else {
+            speak();
         }
-
-        window.speechSynthesis.speak(utterance);
     };
 
     if (!navigator.onLine) {
@@ -359,11 +428,15 @@ function speakText(text, langCode) {
     const encodedText = encodeURIComponent(text);
     const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${shortLang}&client=tw-ob`;
 
-    currentAudio = new Audio(ttsUrl);
-    currentAudio.playbackRate = 0.9;
+    const audio = new Audio(ttsUrl);
+    currentAudio = audio;
+    audio.playbackRate = 0.9;
 
-    currentAudio.play().catch(e => {
+    audio.play().catch(e => {
         console.warn("Google TTS failed, falling back to Web Speech API:", e);
+        if (currentAudio === audio) {
+            currentAudio = null;
+        }
         fallbackToWebSpeech();
     });
 }
