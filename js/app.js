@@ -230,13 +230,19 @@ function checkAnswer() {
     const question = questions[questionIndex];
     const userAnswer = selectedWords.map(sw => sw.t).join('');
     const correctAnswer = question.answer.map(a => a.t).join('');
+    const correctPronunciation = question.answer.map(a => a.p).filter(p => p).join(' ');
 
     if (userAnswer === correctAnswer) {
         feedbackMsg.textContent = "✔ CORRECT ! 🎉";
         feedbackMsg.className = "feedback correct";
         
-        // 正解時は answerArea をコピペ可能なテキストに置き換え
-        answerArea.innerHTML = `<div class="final-answer-text">${correctAnswer}</div>`;
+        // 正解時は answerArea を正解文＋発音表記の構成に置き換え
+        answerArea.innerHTML = `
+            <div class="final-answer-container">
+                <div class="final-answer-text">${correctAnswer}</div>
+                <div class="final-answer-pronunciation">${correctPronunciation}</div>
+            </div>
+        `;
 
         btnCheck.style.display = 'none';
         btnNext.style.display = 'block';
@@ -298,11 +304,13 @@ function showResult() {
             item.className = 'review-item';
             
             const fullAnswer = q.answer.map(a => a.t).join('');
+            const fullPronunciation = q.answer.map(a => a.p).filter(p => p).join(' ');
             
             item.innerHTML = `
                 <div class="review-instruction">➔ ${q.instruction}</div>
                 <div class="review-hint">${q.hint}</div>
                 <div class="review-answer">${fullAnswer}</div>
+                <div class="review-pronunciation">${fullPronunciation}</div>
             `;
             incorrectList.appendChild(item);
         });
@@ -319,56 +327,6 @@ function backToStart() {
 
     changeCategory();
 }
-
-// function speakText(text, langCode) {
-//     if (!text) return;
-
-//     let shortLang = 'en';
-//     let fullLang = 'en-US';
-//     if (langCode === 'th') { shortLang = 'th'; fullLang = 'th-TH'; }
-//     if (langCode === 'ja') { shortLang = 'ja'; fullLang = 'ja-JP'; }
-
-//     // 既存再生の停止
-//     if ('speechSynthesis' in window) {
-//         window.speechSynthesis.cancel();
-//     }
-//     if (currentAudio) {
-//         currentAudio.pause();
-//         currentAudio = null;
-//     }
-
-//     const fallbackToWebSpeech = () => {
-//         if (!('speechSynthesis' in window)) return;
-
-//         const utterance = new SpeechSynthesisUtterance(text);
-//         utterance.lang = fullLang;
-//         utterance.rate = 0.85;
-
-//         const voices = window.speechSynthesis.getVoices();
-//         const matchingVoice = voices.find(v => v.lang === fullLang || v.lang.startsWith(shortLang));
-//         if (matchingVoice) {
-//             utterance.voice = matchingVoice;
-//         }
-
-//         window.speechSynthesis.speak(utterance);
-//     };
-
-//     if (!navigator.onLine) {
-//         fallbackToWebSpeech();
-//         return;
-//     }
-
-//     const encodedText = encodeURIComponent(text);
-//     const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${shortLang}&client=tw-ob`;
-
-//     currentAudio = new Audio(ttsUrl);
-//     currentAudio.playbackRate = 0.9;
-
-//     currentAudio.play().catch(e => {
-//         console.warn("Google TTS failed, falling back to Web Speech API:", e);
-//         fallbackToWebSpeech();
-//     });
-// }
 
 function speakText(text, langCode) {
     if (!text) return;
@@ -396,7 +354,6 @@ function speakText(text, langCode) {
             utterance.rate = 0.85;
 
             const voices = window.speechSynthesis.getVoices();
-            // 完全一致、または前方一致（'th-TH' や 'th_TH' など）で探す
             const matchingVoice = voices.find(v => 
                 v.lang === fullLang || 
                 v.lang.replace('_', '-').startsWith(shortLang)
@@ -409,11 +366,10 @@ function speakText(text, langCode) {
             window.speechSynthesis.speak(utterance);
         };
 
-        // voicesがまだ読み込まれていない場合はロードを待ってから実行
         if (window.speechSynthesis.getVoices().length === 0) {
             window.speechSynthesis.onvoiceschanged = () => {
                 speak();
-                window.speechSynthesis.onvoiceschanged = null; // 1回だけ実行
+                window.speechSynthesis.onvoiceschanged = null;
             };
         } else {
             speak();
@@ -428,9 +384,11 @@ function speakText(text, langCode) {
     const encodedText = encodeURIComponent(text);
     const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${shortLang}&client=tw-ob`;
 
-    const audio = new Audio(ttsUrl);
-    currentAudio = audio;
+    const audio = new Audio();
+    audio.referrerPolicy = 'no-referrer'; // GitHub Pagesからのリクエスト制限回避
+    audio.src = ttsUrl;
     audio.playbackRate = 0.9;
+    currentAudio = audio;
 
     audio.play().catch(e => {
         console.warn("Google TTS failed, falling back to Web Speech API:", e);

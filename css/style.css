@@ -195,12 +195,11 @@ select:focus {
     color: #18181b;
     width: 100%;
     text-align: center;
-    padding: 8px 0;
+    padding: 0;
     word-break: break-all;
     user-select: text;
     -webkit-user-select: text;
 }
-
 /* --------------------------------------------------------------------------
    Feedback Message
    -------------------------------------------------------------------------- */
@@ -505,4 +504,39 @@ button.audio:active {
 .count-option.active {
     background-color: #18181b;
     color: #ffffff;
+}
+
+#answer-area:has(.final-answer-container) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+/* 正解文と発音を入れるコンテナ */
+.final-answer-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin: auto 0;
+}
+
+.final-answer-pronunciation {
+    font-size: 0.95rem;
+    color: #71717a;
+    margin-top: 6px;
+    font-family: monospace, sans-serif;
+    text-align: center;
+    width: 100%;
+}
+
+/* リザルト画面の復習エリア用発音表記 */
+.review-pronunciation {
+    font-size: 0.85rem;
+    color: #888888;
+    margin-top: 2px;
+    font-family: monospace, sans-serif;
 }
