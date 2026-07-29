@@ -540,3 +540,59 @@ button.audio:active {
     margin-top: 2px;
     font-family: monospace, sans-serif;
 }
+
+/* ==========================================================================
+   Vocab Meaning Cards (Displayed in OPTIONS area upon correct answer)
+   ========================================================================== */
+
+.vocab-card {
+    background-color: #ffffff;
+    border: 1.5px solid #18181b;
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    box-shadow: 0 2px 0px rgba(24, 24, 27, 0.08);
+    min-width: 120px;
+    flex: 1 1 calc(50% - 10px); /* 画面幅に応じて綺麗に並ぶレスポンシブ配置 */
+}
+
+.vocab-header {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    border-bottom: 1px dashed #e4e4e7;
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+}
+
+.vocab-target {
+    font-size: 16px;
+    font-weight: 700;
+    color: #18181b;
+}
+
+.vocab-phonetic {
+    font-size: 11px;
+    color: #71717a;
+    font-family: monospace, sans-serif;
+}
+
+.vocab-meaning {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.vocab-en {
+    font-size: 13px;
+    color: #2563eb; /* 英語表記（視認性の高いブルー） */
+    font-weight: 600;
+}
+
+.vocab-th {
+    font-size: 12px;
+    color: #4b5563; /* タイ語表記 */
+    font-weight: 500;
+}

@@ -244,6 +244,40 @@ function checkAnswer() {
             </div>
         `;
 
+        // -----------------------------------------------------------
+        // ★【OPTIONS】エリアに意味を表示する処理（互換性対応）
+        // -----------------------------------------------------------
+        // 1つでも e (英語) または th (タイ語) の意味データを持っているかチェック
+        const hasMeaningData = question.answer.some(a => a.e || a.th);
+
+        if (hasMeaningData) {
+            wordArea.innerHTML = '';
+            // 問題の元の語順（question.answer）で単語リストを表示
+            question.answer.forEach(wordObj => {
+                const vocabCard = document.createElement('div');
+                vocabCard.className = 'vocab-card';
+
+                const enText = wordObj.e ? `<div class="vocab-en">${wordObj.e}</div>` : '';
+                const thText = wordObj.th ? `<div class="vocab-th">${wordObj.th}</div>` : '';
+                const pText = wordObj.p ? `<span class="vocab-phonetic">(${wordObj.p})</span>` : '';
+
+                vocabCard.innerHTML = `
+                    <div class="vocab-header">
+                        <span class="vocab-target">${wordObj.t || ''}</span>
+                        ${pText}
+                    </div>
+                    <div class="vocab-meaning">
+                        ${enText}
+                        ${thText}
+                    </div>
+                `;
+                wordArea.appendChild(vocabCard);
+            });
+        }
+        // 意味データがない（古いデータファイル）場合は、wordAreaの操作を行わず
+        // 今まで通り選択済みチップ（グレーアウト状態）のままになります。
+        // -----------------------------------------------------------
+
         btnCheck.style.display = 'none';
         btnNext.style.display = 'block';
         if (btnAudio) btnAudio.style.display = 'inline-block';
