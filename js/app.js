@@ -40,8 +40,11 @@ const qText = document.getElementById('q-text');
 const hText = document.getElementById('h-text');
 const answerArea = document.getElementById('answer-area');
 const wordArea = document.getElementById('word-area');
+
+const btnReset = document.querySelector('button.reset'); 
 const btnCheck = document.getElementById('btn-check');
 const btnNext = document.getElementById('btn-next');
+const btnSkip = document.getElementById('btn-skip');
 const feedbackMsg = document.getElementById('feedback-msg');
 
 // リザルト・カウンター関係のDOM
@@ -144,9 +147,12 @@ function initQuestion() {
     
     shuffledWords = [...question.answer].sort(() => Math.random() - 0.5);
     
+    if (btnReset) btnReset.style.display = 'block';
     btnCheck.style.display = 'block';
+    if (btnSkip) btnSkip.style.display = 'block';
     btnNext.style.display = 'none';
     if (btnAudio) btnAudio.style.display = 'none';
+
     feedbackMsg.textContent = '';
     feedbackMsg.className = 'feedback';
 
@@ -277,7 +283,8 @@ function checkAnswer() {
         // 意味データがない（古いデータファイル）場合は、wordAreaの操作を行わず
         // 今まで通り選択済みチップ（グレーアウト状態）のままになります。
         // -----------------------------------------------------------
-
+        
+        if (btnReset) btnReset.style.display = 'none';
         btnCheck.style.display = 'none';
         btnNext.style.display = 'block';
         if (btnAudio) btnAudio.style.display = 'inline-block';
@@ -479,4 +486,68 @@ function selectQuestionCount(val, labelText) {
     document.getElementById('count-accordion').classList.remove('open');
 
     changeCategory();
+}
+
+function skipQuestion() {
+    if (!questions || questions.length === 0) return;
+
+    const confirmMessage = "Skip this question?\n(この問題をパスして答えを表示しますか？)";
+    if (!confirm(confirmMessage)) {
+        return; // キャンセルされたら何もしない
+    }
+    
+    const question = questions[questionIndex];
+    const correctAnswer = question.answer.map(a => a.t).join('');
+    const correctPronunciation = question.answer.map(a => a.p).filter(p => p).join(' ');
+
+    // 1. 未解答・ミス扱いとして復習用リストに追加
+    if (!incorrectQuestions.includes(question)) {
+        incorrectQuestions.push(question);
+    }
+    isFirstAttempt = false;
+
+    // 2. 正解と解説を表示
+    feedbackMsg.textContent = "⏭ PASSED (Skipped)";
+    feedbackMsg.className = "feedback incorrect";
+
+    // 解答エリアに模範解答と発音を表示
+    answerArea.innerHTML = `
+        <div class="final-answer-container">
+            <div class="final-answer-text">${correctAnswer}</div>
+            <div class="final-answer-pronunciation">${correctPronunciation}</div>
+        </div>
+    `;
+
+    // OPTIONS エリアに語彙・意味を表示
+    const hasMeaningData = question.answer.some(a => a.e || a.th);
+    if (hasMeaningData) {
+        wordArea.innerHTML = '';
+        question.answer.forEach(wordObj => {
+            const vocabCard = document.createElement('div');
+            vocabCard.className = 'vocab-card';
+
+            const enText = wordObj.e ? `<div class="vocab-en">${wordObj.e}</div>` : '';
+            const thText = wordObj.th ? `<div class="vocab-th">${wordObj.th}</div>` : '';
+            const pText = wordObj.p ? `<span class="vocab-phonetic">(${wordObj.p})</span>` : '';
+
+            vocabCard.innerHTML = `
+                <div class="vocab-header">
+                    <span class="vocab-target">${wordObj.t || ''}</span>
+                    ${pText}
+                </div>
+                <div class="vocab-meaning">
+                    ${enText}
+                    ${thText}
+                </div>
+            `;
+            wordArea.appendChild(vocabCard);
+        });
+    }
+
+    // 3. ボタン表示の切り替え（Check/Passを隠し、Next/Audioを表示）
+    if (btnReset) btnReset.style.display = 'none';
+    btnCheck.style.display = 'none';
+    if (btnSkip) btnSkip.style.display = 'none';
+    btnNext.style.display = 'block';
+    if (btnAudio) btnAudio.style.display = 'inline-block';
 }

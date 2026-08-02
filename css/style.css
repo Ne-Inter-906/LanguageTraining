@@ -201,6 +201,30 @@ select:focus {
     -webkit-user-select: text;
 }
 /* --------------------------------------------------------------------------
+   Buttons & Action Area (Passボタンの追加)
+   -------------------------------------------------------------------------- */
+
+/* Pass (Skip) ボタン - 斜線ハッチングデザイン */
+/* Pass (Skip) ボタン - ライトグレーソリッド */
+button.skip {
+    background-color: #e4e4e7;
+    border: 2px solid #18181b;
+    color: #27272a;
+    box-shadow: 0 4px 0 #18181b;
+    top: 0;
+    flex-grow: 1;
+}
+
+button.skip:hover {
+    background-color: #d4d4d8;
+}
+
+button.skip:active {
+    top: 4px;
+    box-shadow: none;
+    background-color: #a1a1aa;
+}
+/* --------------------------------------------------------------------------
    Feedback Message
    -------------------------------------------------------------------------- */
 
@@ -289,7 +313,9 @@ button.reset {
     background-color: transparent;
     border: 2px solid #18181b;
     color: #18181b;
+    flex-grow: 0;
 }
+
 button.reset:active {
     background-color: #f4f4f5;
 }
@@ -336,6 +362,11 @@ button.audio:active {
     color: #ffffff;
 }
 
+button.check, 
+button.next, 
+button.skip {
+    flex-grow: 1;
+}
 /* --------------------------------------------------------------------------
    Result Screen
    -------------------------------------------------------------------------- */
