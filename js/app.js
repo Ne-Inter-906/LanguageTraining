@@ -286,6 +286,7 @@ function checkAnswer() {
         
         if (btnReset) btnReset.style.display = 'none';
         btnCheck.style.display = 'none';
+        if (btnSkip) btnSkip.style.display = 'none';
         btnNext.style.display = 'block';
         if (btnAudio) btnAudio.style.display = 'inline-block';
 
@@ -491,11 +492,12 @@ function selectQuestionCount(val, labelText) {
 function skipQuestion() {
     if (!questions || questions.length === 0) return;
 
+    // 誤操作防止のアラート
     const confirmMessage = "Skip this question?\n(この問題をパスして答えを表示しますか？)";
     if (!confirm(confirmMessage)) {
-        return; // キャンセルされたら何もしない
+        return;
     }
-    
+
     const question = questions[questionIndex];
     const correctAnswer = question.answer.map(a => a.t).join('');
     const correctPronunciation = question.answer.map(a => a.p).filter(p => p).join(' ');
@@ -507,7 +509,7 @@ function skipQuestion() {
     isFirstAttempt = false;
 
     // 2. 正解と解説を表示
-    feedbackMsg.textContent = "⏭ PASSED (Skipped)";
+    feedbackMsg.textContent = "⏭ PASSED";
     feedbackMsg.className = "feedback incorrect";
 
     // 解答エリアに模範解答と発音を表示
@@ -544,10 +546,10 @@ function skipQuestion() {
         });
     }
 
-    // 3. ボタン表示の切り替え（Check/Passを隠し、Next/Audioを表示）
+    // 3. ★ ボタン表示の切り替え（Clear, Check, Passを隠し、Next, Audioを表示）
     if (btnReset) btnReset.style.display = 'none';
     btnCheck.style.display = 'none';
-    if (btnSkip) btnSkip.style.display = 'none';
+    if (btnSkip) btnSkip.style.display = 'none'; // ★ Passボタンを非表示
     btnNext.style.display = 'block';
     if (btnAudio) btnAudio.style.display = 'inline-block';
 }
